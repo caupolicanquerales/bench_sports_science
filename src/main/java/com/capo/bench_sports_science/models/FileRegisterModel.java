@@ -34,6 +34,9 @@ public class FileRegisterModel {
 	@Column(name = "FILE_NAME", nullable = false)
 	private String fileName;
 	
+	@Column(name = "USER_ID", nullable = false)
+	private String userId;
+	
 	@CreationTimestamp
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;

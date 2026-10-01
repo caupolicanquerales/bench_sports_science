@@ -25,9 +25,15 @@ public class FileRegisterJobListener implements JobExecutionListener {
     @Override
     public void beforeJob(JobExecution jobExecution) {
         String fileName = jobExecution.getJobParameters().getString("fileName");
+        String userId = jobExecution.getJobParameters().getString("userId");
+
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalArgumentException("userId is required to register the uploaded Garmin file");
+        }
 
         FileRegisterModel fileRegister = new FileRegisterModel();
         fileRegister.setFileName(fileName);
+        fileRegister.setUserId(userId);
         fileRegister = fileRegisterRepository.save(fileRegister);
 
         jobExecution.getExecutionContext().putLong("fileRegisterId", fileRegister.getId());

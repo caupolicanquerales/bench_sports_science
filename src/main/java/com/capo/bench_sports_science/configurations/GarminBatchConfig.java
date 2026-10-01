@@ -1,5 +1,7 @@
 package com.capo.bench_sports_science.configurations;
 
+import java.io.InputStream;
+
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -14,7 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.batch.autoconfigure.BatchTaskExecutor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -23,6 +25,7 @@ import com.capo.bench_sports_science.components.RawGarminItemProcessor;
 import com.capo.bench_sports_science.domain.shared.RawParameterGarminName;
 import com.capo.bench_sports_science.dto.RawGarminCsvDto;
 import com.capo.bench_sports_science.models.RawGarminRegisterModel;
+import com.capo.bench_sports_science.repository.MinioRepository;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -30,7 +33,11 @@ import jakarta.persistence.EntityManagerFactory;
 public class GarminBatchConfig {
 	
 	private static final int CHUNK_SIZE = 500;
+	private final MinioRepository minioRepository;
 	
+	public GarminBatchConfig(MinioRepository minioRepository) {
+		this.minioRepository=minioRepository;
+	}
 	
 	@Bean
 	@BatchTaskExecutor
@@ -41,10 +48,12 @@ public class GarminBatchConfig {
 	
 	@Bean
     @StepScope
-    public FlatFileItemReader<RawGarminCsvDto> csvReader(@Value("#{jobParameters['filePath']}") String filePath) {
+    public FlatFileItemReader<RawGarminCsvDto> csvReader(
+            @Value("#{jobParameters['objectName'] != null ? jobParameters['objectName'] : jobParameters['fileId']}") String objectName) throws Exception {
+		InputStream file= minioRepository.getFileStream(objectName);
         return new FlatFileItemReaderBuilder<RawGarminCsvDto>()
                 .name("rawGarminCsvReader")
-                .resource(new FileSystemResource(filePath))
+                .resource(new InputStreamResource(file))
                 .linesToSkip(1)
                 .delimited()
                 .names(

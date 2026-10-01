@@ -6,35 +6,32 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.capo.bench_sports_science.domain.shared.ChannelEvents;
 import com.capo.bench_sports_science.dto.GarminChartPointDto;
-import com.capo.bench_sports_science.dto.GarminSummaryDto;
 import com.capo.bench_sports_science.event.FileIngestionCompletedEvent;
 import com.capo.bench_sports_science.repository.GarminAnalyticSummaryRepository;
+import com.capo.bench_sports_science.service.SseService;
 
 import jakarta.transaction.Transactional;
 
 @Component
-public class DataIngestionEventListener {
+public class DataChartsEventListener {
 	
 	private final GarminAnalyticSummaryRepository garminAnalyticsRepository;
+	private final SseService sseService;
 	
-	public DataIngestionEventListener(GarminAnalyticSummaryRepository garminAnalyticsRepository) {
+	public DataChartsEventListener(GarminAnalyticSummaryRepository garminAnalyticsRepository,
+			SseService sseService) {
 		this.garminAnalyticsRepository = garminAnalyticsRepository;
+		this.sseService = sseService;
 	}
 	
 	@Async 
     @EventListener
     @Transactional
-    public void handleIngestionCompleted(FileIngestionCompletedEvent event) {
+    public void handleChartsDataCompleted(FileIngestionCompletedEvent event) {
         Long fileId = event.fileRegisterId();
-        GarminSummaryDto garminSummaryDto = garminAnalyticsRepository.fetchActivitySummary(fileId);
         List<GarminChartPointDto> chartData = garminAnalyticsRepository.fetchChartPoints(fileId);
-        
-
-        System.out.println("<-----------   SE EJECUTO EL PROCESO BATCH  ------------>");
-        System.out.println(garminSummaryDto.avgCadence()+" "+garminSummaryDto.avgHeartRate());
-        // 2. Broadcast summary event to all connected SSE clients
-        //sseService.sendEventToClients("garmin-ingested-event", summary);
+        sseService.sendEventToChannel(ChannelEvents.CHANNEL_CHARTS.value(),ChannelEvents.Events.EVENT_CHARTS, chartData);
     }
-
 }
