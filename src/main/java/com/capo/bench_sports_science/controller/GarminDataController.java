@@ -22,19 +22,19 @@ public class GarminDataController {
 		this.sseService= sseService;
 	}
 	
-	@GetMapping(path = "/stream-data-summary", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	@GetMapping(path = "/data-summary", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	@PreAuthorize("hasAnyRole('ATHLETE', 'COACH')")
     public SseEmitter streamDataSummaryGarmin(@AuthenticationPrincipal Jwt jwt) {
 		return sseService.subscribe(ChannelEvents.CHANNEL_SUMMARY.value());
 	}
 	
-	@GetMapping(path = "/stream-data-charts", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	@GetMapping(path = "/data-charts", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	@PreAuthorize("hasAnyRole('ATHLETE', 'COACH')")
     public SseEmitter streamDataChartsGarmin(@AuthenticationPrincipal Jwt jwt) {
 		return sseService.subscribe(ChannelEvents.CHANNEL_CHARTS.value());
 	}
 	
-	@GetMapping(path = "/stream-data-gps", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	@GetMapping(path = "/data-gps", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	@PreAuthorize("hasAnyRole('ATHLETE', 'COACH')")
     public SseEmitter streamDataGpsGarmin(@AuthenticationPrincipal Jwt jwt) {
 		return sseService.subscribe(ChannelEvents.CHANNEL_GPS.value());

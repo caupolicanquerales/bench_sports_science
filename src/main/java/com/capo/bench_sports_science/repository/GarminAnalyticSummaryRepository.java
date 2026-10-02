@@ -37,17 +37,24 @@ public class GarminAnalyticSummaryRepository {
                     .setParameter("fileRegisterId", fileRegisterId)
                     .getSingleResult();
 
-            return new GarminSummaryDto(
-                    getIntegerValue(result[0]),
-                    getIntegerValue(result[1]),
-                    getIntegerValue(result[2]),
-                    getIntegerValue(result[3]),
-                    getIntegerValue(result[4]),
-                    getDoubleValue(result[5]));
+            return mapSummaryResult(result);
 
         } catch (IOException e) {
             throw new IllegalStateException("Error loading summary SQL script", e);
         }
+    }
+
+    public static GarminSummaryDto mapSummaryResult(Object[] result) {
+        return new GarminSummaryDto(
+                getIntegerValue(result[0]),
+                getIntegerValue(result[1]),
+                getIntegerValue(result[2]),
+                getIntegerValue(result[3]),
+                getIntegerValue(result[4]),
+                getDoubleValue(result[5]),
+                getLongValue(result[6]),
+                getDoubleValue(result[7]),
+                getDoubleValue(result[8]));
     }
 	
 	
@@ -76,7 +83,7 @@ public class GarminAnalyticSummaryRepository {
 	@SuppressWarnings("unchecked")
     public List<GarminGPSPointDto> fetchGPSChartPoints(Long fileRegisterId) {
         String sql = """
-            SELECT latitude, longitude, speed_kmh
+            SELECT latitude, longitude, speed_kmh, elevation_m
             FROM garmin_leaflet_hotline_points
             WHERE file_register_id = :fileRegisterId
         """;
@@ -88,7 +95,8 @@ public class GarminAnalyticSummaryRepository {
         return rows.stream().map(row -> new GarminGPSPointDto(
         		getDoubleValue(row[0]),
         		getDoubleValue(row[1]),
-                getDoubleValue(row[2])
+                getDoubleValue(row[2]),
+                getDoubleValue(row[3])
         )).toList();
     }
 	
@@ -108,11 +116,15 @@ public class GarminAnalyticSummaryRepository {
 		return OffsetDateTime.parse(value.toString());
 	}
 	
-	private Double getDoubleValue(Object object) {
+	private static Double getDoubleValue(Object object) {
 		return object != null ? ((Number) object).doubleValue() : null;
 	}
 	
-	private Integer getIntegerValue(Object object) {
+	private static Integer getIntegerValue(Object object) {
 		return object != null ? ((Number) object).intValue() : null;
+	}
+
+	private static Long getLongValue(Object object) {
+		return object != null ? ((Number) object).longValue() : null;
 	}
 }

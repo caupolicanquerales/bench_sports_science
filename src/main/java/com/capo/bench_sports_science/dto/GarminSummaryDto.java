@@ -6,5 +6,8 @@ public record GarminSummaryDto(
 		Integer avgPower,
 		Integer maxPower,
 		Integer avgCadence,
-		Double speedMs) {
+		Double avgSpeedKmh,
+		Long totalTimeSeconds,
+		Double avgPaceMinPerKm,
+		Double totalDistanceM) {
 }
